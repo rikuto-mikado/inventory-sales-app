@@ -19,15 +19,20 @@ export default function App() {
   }, []);
 
   const sorted = useMemo(() => {
+    // Spread into a new array so the original items array is not mutated
     return [...items].sort((a, b) => {
       let cmp = 0;
       if (sortKey === "price") {
+        // Convert string "19.99" to number for numeric comparison
         cmp = parseFloat(a.price) - parseFloat(b.price);
       } else if (sortKey === "is_active") {
+        // Cast boolean to 0 or 1 so we can subtract to compare
         cmp = Number(a.is_active) - Number(b.is_active);
       } else {
+        // String comparison; numeric:true makes "SKU-2" sort before "SKU-10"
         cmp = a[sortKey].localeCompare(b[sortKey], undefined, { numeric: true });
       }
+      // Positive cmp → a after b. Negate to reverse for descending order.
       return sortDir === "asc" ? cmp : -cmp;
     });
   }, [items, sortKey, sortDir]);
