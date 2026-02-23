@@ -1,10 +1,23 @@
-// Base API client: provides a generic GET helper with error handling.
-export const API_BASE_URL = "http://127.0.0.1:8000/api";
+const API_BASE_URL = "http://127.0.0.1:8000/api";
 
 export async function apiGet<T>(path: string): Promise<T> {
-    const response = await fetch(`${API_BASE_URL}${path}`)
-    if (!response.ok) {
-        throw new Error(`Failed to fetch API data: ${response.status}`)
-    }
-    return response.json() as Promise<T>
+  const res = await fetch(`${API_BASE_URL}${path}`);
+  if (!res.ok) {
+    throw new Error(`HTTP ${res.status}`);
+  }
+  return res.json() as Promise<T>;
+}
+
+// This function is for POST requests with a JSON body
+export async function apiPost<T>(path: string, body: unknown): Promise<T> {
+  const res = await fetch(`${API_BASE_URL}${path}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(JSON.stringify(errorData) || `HTTP ${res.status}`);
+  }
+  return res.json() as Promise<T>;
 }
