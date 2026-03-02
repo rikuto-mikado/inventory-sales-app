@@ -8,7 +8,6 @@ export async function apiGet<T>(path: string): Promise<T> {
   return res.json() as Promise<T>;
 }
 
-// This function is for POST requests with a JSON body
 export async function apiPost<T>(path: string, body: unknown): Promise<T> {
   const res = await fetch(`${API_BASE_URL}${path}`, {
     method: "POST",
@@ -20,4 +19,14 @@ export async function apiPost<T>(path: string, body: unknown): Promise<T> {
     throw new Error(JSON.stringify(errorData) || `HTTP ${res.status}`);
   }
   return res.json() as Promise<T>;
+}
+
+export async function apiDelete(path: string): Promise<void> {
+  const res = await fetch(`${API_BASE_URL}${path}`, {
+    method: "DELETE",
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(JSON.stringify(errorData) || `HTTP ${res.status}`);
+  }
 }

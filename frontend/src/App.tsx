@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import type { Product } from "./types/product";
-import { listProducts, addProduct } from "./api/products";
+import { listProducts, addProduct, deleteProduct } from "./api/products";
 
 type SortKey = "sku" | "name" | "price" | "is_active";
 type SortDir = "asc" | "desc";
@@ -48,6 +48,16 @@ export default function App() {
     } else {
       setSortKey(key);
       setSortDir("asc");
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    if (!confirm("Are you sure?")) return;
+    try {
+      await deleteProduct(id);
+      setItems((prev) => prev.filter((p) => p.id !== id));
+    } catch (e) {
+      setErr(e instanceof Error ? e : new Error("Failed to delete product"));
     }
   };
 
@@ -139,6 +149,7 @@ export default function App() {
                   </th>
                 )
               )}
+              <th className="border px-3 py-2 text-left">Action</th>
             </tr>
           </thead>
           <tbody>
@@ -148,7 +159,15 @@ export default function App() {
                 <td className="border px-3 py-2">{p.name}</td>
                 <td className="border px-3 py-2">{p.price}</td>
                 <td className="border px-3 py-2">{p.is_active ? "Yes" : "No"}</td>
-                </tr>
+                <td className="border px-3 py-2">
+                  <button
+                    onClick={() => handleDelete(p.id)}
+                    className="text-red-600 hover:text-red-800 hover:underline text-sm"
+                  >
+                    Delete
+                  </button>
+                </td>
+              </tr>
             ))}
           </tbody>
         </table>
