@@ -5,12 +5,14 @@ Full-stack inventory and sales management application built with Django REST Fra
 ## Tech Stack
 
 **Backend:**
+
 - Django 6.0.1
 - Django REST Framework
 - PostgreSQL 15
 - Python 3.x
 
 **Frontend:**
+
 - React 19.2.0
 - TypeScript
 - Vite
@@ -52,7 +54,8 @@ Start PostgreSQL using Docker Compose (run from project root):
 docker-compose up -d
 ```
 
-This will start PostgreSQL on `localhost:5432` with:
+This will start PostgreSQL on `localhost:5433` with:
+
 - Database: `inventory_db`
 - User: `postgres`
 - Password: `postgres`
