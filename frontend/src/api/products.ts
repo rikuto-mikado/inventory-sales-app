@@ -1,4 +1,4 @@
-import { apiGet, apiPost, apiDelete } from "./client";
+import { apiGet, apiPost, apiDelete, apiPut } from "./client";
 import type { Product } from "../types/product";
 
 export function listProducts() {
@@ -11,4 +11,8 @@ export function addProduct(data: Omit<Product, "id" | "created_at" | "updated_at
 
 export function deleteProduct(id: number) {
   return apiDelete(`/products/${id}/`);
+}
+
+export function updateProduct(id: number, data: Omit<Product, "id" | "created_at" | "updated_at">) {
+  return apiPut<Product>(`/products/${id}/`, data);
 }

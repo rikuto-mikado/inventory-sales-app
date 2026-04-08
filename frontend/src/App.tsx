@@ -1,15 +1,15 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import type { Product } from "./types/product";
-import { listProducts, addProduct, deleteProduct } from "./api/products";
+import { listProducts, addProduct, deleteProduct, updateProduct } from "./api/products";
 
-type SortKey = "sku" | "name" | "price" | "is_active";
-type SortDir = "asc" | "desc";
+// type SortKey = "sku" | "name" | "price" | "is_active";
+// type SortDir = "asc" | "desc";
 
 export default function App() {
   const [items, setItems] = useState<Product[]>([]);
   const [err, setErr] = useState<Error | null>(null);
-  const [sortKey, setSortKey] = useState<SortKey>("sku");
-  const [sortDir, setSortDir] = useState<SortDir>("asc");
+  // const [sortKey, setSortKey] = useState<SortKey>("sku");
+  // const [sortDir, setSortDir] = useState<SortDir>("asc");
 
   const emptyForm = { sku: "", name: "", description: "", price: "", is_active: true };
   const [form, setForm] = useState(emptyForm);
@@ -23,33 +23,28 @@ export default function App() {
       .catch(setErr);
   }, []);
 
-  const sorted = useMemo(() => {
-    // Spread into a new array so the original items array is not mutated
-    return [...items].sort((a, b) => {
-      let cmp = 0;
-      if (sortKey === "price") {
-        // Convert string "19.99" to number for numeric comparison
-        cmp = parseFloat(a.price) - parseFloat(b.price);
-      } else if (sortKey === "is_active") {
-        // Cast boolean to 0 or 1 so we can subtract to compare
-        cmp = Number(a.is_active) - Number(b.is_active);
-      } else {
-        // String comparison; numeric:true makes "SKU-2" sort before "SKU-10"
-        cmp = a[sortKey].localeCompare(b[sortKey], undefined, { numeric: true });
-      }
-      // Positive cmp → a after b. Negate to  reverse for descending order.
-      return sortDir === "asc" ? cmp : -cmp;
-    });
-  }, [items, sortKey, sortDir]);
+  // const sorted = useMemo(() => {
+  //   return [...items].sort((a, b) => {
+  //     let cmp = 0;
+  //     if (sortKey === "price") {
+  //       cmp = parseFloat(a.price) - parseFloat(b.price);
+  //     } else if (sortKey === "is_active") {
+  //       cmp = Number(a.is_active) - Number(b.is_active);
+  //     } else {
+  //       cmp = a[sortKey].localeCompare(b[sortKey], undefined, { numeric: true });
+  //     }
+  //     return sortDir === "asc" ? cmp : -cmp;
+  //   });
+  // }, [items, sortKey, sortDir]);
 
-  const handleSort = (key: SortKey) => {
-    if (sortKey === key) {
-      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
-    } else {
-      setSortKey(key);
-      setSortDir("asc");
-    }
-  };
+  // const handleSort = (key: SortKey) => {
+  //   if (sortKey === key) {
+  //     setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+  //   } else {
+  //     setSortKey(key);
+  //     setSortDir("asc");
+  //   }
+  // };
 
   const handleDelete = async (id: number) => {
     if (!confirm("Are you sure?")) return;
@@ -61,8 +56,8 @@ export default function App() {
     }
   };
 
-  const arrow = (key: SortKey) =>
-    sortKey === key ? (sortDir === "asc" ? " ▲" : " ▼") : "";
+  // const arrow = (key: SortKey) =>
+  //   sortKey === key ? (sortDir === "asc" ? " ▲" : " ▼") : "";
 
   // Add product form handler
   const handleSubmit = async (e: React.FormEvent) => {
@@ -138,22 +133,16 @@ export default function App() {
         <table className="min-w-full border">
           <thead>
             <tr className="bg-gray-50">
-              {([["sku", "SKU"], ["name", "Name"], ["price", "Price"], ["is_active", "Active"]] as const).map(
-                ([key, label]) => (
-                  <th
-                    key={key}
-                    className="border px-3 py-2 text-left cursor-pointer select-none hover:bg-gray-100"
-                    onClick={() => handleSort(key)}
-                  >
-                    {label}{arrow(key)}
-                  </th>
-                )
-              )}
-              <th className="border px-3 py-2 text-left">Action</th>
+              {(["SKU", "Name", "Price", "Active"] as const).map((label) => (
+                <th key={label} className="border px-3 py-2 text-left">
+                  {label}
+                </th>
+              ))}
+              <th className="border px-3 py-2 text-left"></th>
             </tr>
           </thead>
           <tbody>
-            {sorted.map((p) => (
+            {items.map((p) => (
               <tr key={p.id}>
                 <td className="border px-3 py-2">{p.sku}</td>
                 <td className="border px-3 py-2">{p.name}</td>

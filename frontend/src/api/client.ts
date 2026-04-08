@@ -1,5 +1,6 @@
 const API_BASE_URL = "http://127.0.0.1:8001/api";
 
+
 export async function apiGet<T>(path: string): Promise<T> {
   const res = await fetch(`${API_BASE_URL}${path}`);
   if (!res.ok) {
@@ -29,4 +30,18 @@ export async function apiDelete(path: string): Promise<void> {
     const errorData = await res.json().catch(() => ({}));
     throw new Error(JSON.stringify(errorData) || `HTTP ${res.status}`);
   }
+}
+
+// Here's for methods of editing existing resources
+export async function apiPut<T>(path: string, body: unknown): Promise<T>{
+  const res = await fetch(`${API_BASE_URL}${path}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(JSON.stringify(errorData) || `HTTP ${res.status}`);
+  }
+  return res.json() as Promise<T>;
 }
