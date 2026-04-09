@@ -8,6 +8,9 @@ import { listProducts, addProduct, deleteProduct, updateProduct } from "./api/pr
 export default function App() {
   const [items, setItems] = useState<Product[]>([]);
   const [err, setErr] = useState<Error | null>(null);
+  const [search, setSearch] = useState("");
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
   // const [sortKey, setSortKey] = useState<SortKey>("sku");
   // const [sortDir, setSortDir] = useState<SortDir>("asc");
 
@@ -56,6 +59,12 @@ export default function App() {
     }
   };
 
+  const handleEdit = (p : Product) => {
+    setEditingProduct(p);
+    setForm({ ...p, price: p.price.toString() });
+    setModalOpen(true);
+  };
+
   // const arrow = (key: SortKey) =>
   //   sortKey === key ? (sortDir === "asc" ? " ▲" : " ▼") : "";
 
@@ -65,11 +74,18 @@ export default function App() {
     setSubmitting(true);
     setFormErr(null);
     try {
-     const product = await addProduct(form);
-      setItems((prev) => [...prev, product]);
+      if (editingProduct) {
+        const updated = await updateProduct(editingProduct.id, form);
+        setItems((prev) => prev.map((p) => (p.id === updated.id ? updated : p)))
+      } else {
+        const product = await addProduct(form);
+        setItems((prev) => [...prev, product]);
+      }
       setForm(emptyForm);
+      setModalOpen(false);
+      setEditingProduct(null);
     } catch (e) {
-      setFormErr(e instanceof Error ? e.message : "Unknown error");
+      setFormErr(e instanceof Error ? e.message : "Error occurred");
     } finally {
       setSubmitting(false);
     }
@@ -77,94 +93,81 @@ export default function App() {
 
   return (
     <div className="min-h-screen p-6">
-      <h1 className="text-2xl font-bold">Products</h1>
-
-      <form onSubmit={handleSubmit} className="mt-4 flex flex-wrap gap-2 items-end">
-        <input
-          className="border px-2 py-1 rounded"
-          placeholder="SKU"
-          value={form.sku}
-          onChange={(e) => setForm({ ...form, sku: e.target.value })}
-          required
-        />
-        <input
-          className="border px-2 py-1 rounded"
-          placeholder="Name"
-          value={form.name}
-          onChange={(e) => setForm({ ...form, name: e.target.value })}
-          required
-        />
-        <input
-          className="border px-2 py-1 rounded"
-          placeholder="Description"
-          value={form.description}
-          onChange={(e) => setForm({ ...form, description: e.target.value })}
-        />
-        <input
-          className="border px-2 py-1 rounded w-28"
-          placeholder="Price"
-          type="number"
-          step="0.01"
-          value={form.price}
-          onChange={(e) => setForm({ ...form, price: e.target.value })}
-          required
-        />
-        <label className="flex items-center gap-1">
-          <input
-            type="checkbox"
-            checked={form.is_active}
-            onChange={(e) => setForm({ ...form, is_active: e.target.checked })}
-          />
-          Active
-        </label>
+      <div className="flex item-center justify-between">
+        <h1 className="text-2xl font-bold">Products</h1>
         <button
-          type="submit"
-          disabled={submitting}
-          className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 disabled:opacity-50"
+          onClick={() => {
+            setEditingProduct(null);
+            setForm(emptyForm);
+            setModalOpen(true);
+          }}
         >
-          {submitting ? "Adding…" : "Add Product"}
+          Add Product
         </button>
-        {formErr && <span className="text-red-600 text-sm">{formErr}</span>}
-      </form>
+      </div>
 
-      {err && <p className="mt-4 text-red-600">{err.message}</p>}
+      <input
+        className="mt-4 border px-3 py-2 rounded w-full max-w-sm"
+        placeholder="Search by name or SKU..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+      />
+
+      {err && <div className="mt-4 text-red-500">{err.message}</div>}
 
       <div className="mt-4 overflow-x-auto">
         <table className="min-w-full border">
           <thead>
-            <tr className="bg-gray-50">
+            <tr className="bg-gray-100">
               {(["SKU", "Name", "Price", "Active"] as const).map((label) => (
-                <th key={label} className="border px-3 py-2 text-left">
-                  {label}
+                <th
+                  key={label}
+                  className="border px-3 py-2 text-left font-semibold">
+                    {label}     
                 </th>
               ))}
-              <th className="border px-3 py-2 text-left"></th>
+              <th className="border px-3 py-2"></th>
             </tr>
           </thead>
           <tbody>
-            {items.map((p) => (
-              <tr key={p.id}>
-                <td className="border px-3 py-2">{p.sku}</td>
-                <td className="border px-3 py-2">{p.name}</td>
-                <td className="border px-3 py-2">{p.price}</td>
-                <td className="border px-3 py-2">{p.is_active ? "Yes" : "No"}</td>
-                <td className="border px-3 py-2">
-                  <button
-                    onClick={() => handleDelete(p.id)}
-                    className="text-red-600 hover:text-red-800 hover:underline text-sm"
-                  >
-                    Delete
-                  </button>
-                </td>
-              </tr>
-            ))}
+            {items
+              .filter((p) =>
+                p.name.toLowerCase().includes(search.toLowerCase()) ||
+                p.sku.toLowerCase().includes(search.toLowerCase())
+              )
+              .map((p, i) => (
+                <tr key={p.id} className={i % 2 === 0 ? "bg-white hover:bg-blue-50" : "bg-gray-50 hover:bg-blue-50"}>
+                  <td className="border px-3 py-2">{p.sku}</td>
+                  <td className="border px-3 py-2">{p.name}</td>
+                  <td className="border px-3 py-2">{p.price}</td>
+                  <td className="border px-3 py-2">{p.is_active ? "Yes" : "No"}</td>
+                  <td className="border px-3 py-2 flex gap-3"></td>
+                  <button onClick={() => handleEdit} className="text-blue-500 hover:underline text-sm">Edit</button>
+                  <button onClick={() => handleDelete(p.id)} className="text-red-500 hover:underline text-sm">Delete</button>
+                </tr>
+              ))}
           </tbody>
         </table>
-
-        {!err && items.length === 0 && (
-          <p className="mt-3 text-gray-500">No products yet.</p>
-        )}
+        {!err && items.length === 0 && <p className="mt-3 text-gray-500">There's no product here</p>}
       </div>
+
+      {modalOpen && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl">
+            <h2 className="text-lg font-bold mb-4">{editingProduct ? "Edit Product" : "Add Product"}</h2>
+            <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+              <input className="border px-2 py-1 rounded" placeholder="SKU" value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} required />
+              <input className="border px-2 py-1 rounded" placeholder="Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+              <input className="border px-2 py-1 rounded" placeholder="Description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+              <input className="border px-2 py-1 rounded" placeholder="Price" type="number" step="0.01" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} required />
+              <label className="flex items-center gap-2">
+                
+              </label>
+
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
