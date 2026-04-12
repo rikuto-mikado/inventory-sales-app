@@ -94,7 +94,12 @@ export default function App() {
   return (
     <div className="min-h-screen p-6">
       <div className="flex item-center justify-between">
-        <h1 className="text-2xl font-bold">Products</h1>
+        <h1
+          className="text-2xl font-bold"
+          onClick={() => window.location.reload()}
+        >
+          Product List
+        </h1>
         <button
           onClick={() => {
             setEditingProduct(null);
@@ -141,9 +146,10 @@ export default function App() {
                   <td className="border px-3 py-2">{p.name}</td>
                   <td className="border px-3 py-2">{p.price}</td>
                   <td className="border px-3 py-2">{p.is_active ? "Yes" : "No"}</td>
-                  <td className="border px-3 py-2 flex gap-3"></td>
-                  <button onClick={() => handleEdit} className="text-blue-500 hover:underline text-sm">Edit</button>
-                  <button onClick={() => handleDelete(p.id)} className="text-red-500 hover:underline text-sm">Delete</button>
+                  <td className="border px-3 py-2 flex gap-3">
+                    <button onClick={() => handleEdit(p)} className="text-blue-500 hover:underline text-sm">Edit</button>
+                    <button onClick={() => handleDelete(p.id)} className="text-red-500 hover:underline text-sm">Delete</button>
+                  </td>
                 </tr>
               ))}
           </tbody>
@@ -156,12 +162,26 @@ export default function App() {
           <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-xl">
             <h2 className="text-lg font-bold mb-4">{editingProduct ? "Edit Product" : "Add Product"}</h2>
             <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+              {formErr && <p className="text-red-500 text-sm">{formErr}</p>}
+              <div className="flex justify-end gap-2 mt-2">
+                <button type="button" onClick={() => setModalOpen(false)} className='px-4 py-1 rounded border hover:bg-gray-100'>
+                  Cancel
+                </button>
+                <button type="submit" className='px-4 py-1 rounded bg-blue-500 text-white hover:bg-blue-600'>
+                  {submitting ? "Saving..." : editingProduct ? "Save" : "Add"}
+                </button>
+              </div>
               <input className="border px-2 py-1 rounded" placeholder="SKU" value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} required />
               <input className="border px-2 py-1 rounded" placeholder="Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
               <input className="border px-2 py-1 rounded" placeholder="Description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
               <input className="border px-2 py-1 rounded" placeholder="Price" type="number" step="0.01" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} required />
               <label className="flex items-center gap-2">
-                
+                <input
+                  type="checkbox"
+                  checked={form.is_active}
+                  onChange={(e) => setForm({ ...form, is_active: e.target.checked })}
+                />
+                <span>Active</span>
               </label>
 
             </form>
